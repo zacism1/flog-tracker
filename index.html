@@ -1,167 +1,485 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Roster Tracker</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Family Work Roster</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+      @import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;600;700&display=swap");
+
+      :root {
+        --bg-1: #fff1e6;
+        --bg-2: #e8f7ff;
+        --bg-3: #fef9e7;
+        --ink-1: #1a1f2b;
+        --ink-2: #4a5463;
+        --card: rgba(255, 255, 255, 0.85);
+        --card-border: rgba(26, 31, 43, 0.08);
+        --shadow: 0 20px 40px rgba(26, 31, 43, 0.1);
+        --on-bg: #ffe2df;
+        --on-ink: #9e2f2f;
+        --off-bg: #dff6e8;
+        --off-ink: #1f6a3d;
+        --alloff-bg: #c9f3d6;
+        --alloff-ink: #145a2d;
+        --accent: #ff9a6b;
+        --accent-2: #43b0c6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Manrope", "Segoe UI", sans-serif;
+        color: var(--ink-1);
+        background:
+          radial-gradient(circle at 10% 20%, rgba(255, 154, 107, 0.25), transparent 40%),
+          radial-gradient(circle at 90% 10%, rgba(67, 176, 198, 0.2), transparent 45%),
+          linear-gradient(135deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3));
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(26, 31, 43, 0.05) 1px, transparent 1px);
+        background-size: 22px 22px;
+        opacity: 0.55;
+        pointer-events: none;
+      }
+
+      .page {
+        position: relative;
+        padding: 32px 24px 48px;
+        max-width: 1200px;
+        margin: 0 auto;
+        z-index: 1;
+      }
+
+      .hero {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px 24px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+
+      .hero h1 {
+        font-family: "Fraunces", "Georgia", serif;
+        font-size: clamp(2rem, 3vw, 2.8rem);
+        margin: 0 0 6px;
+        letter-spacing: 0.01em;
+      }
+
+      .hero p {
+        margin: 0;
+        color: var(--ink-2);
+        font-size: 0.98rem;
+      }
+
+      .legend {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(26, 31, 43, 0.1);
+        background: var(--card);
+        box-shadow: 0 6px 16px rgba(26, 31, 43, 0.08);
+      }
+
+      .chip.on::before,
+      .chip.off::before,
+      .chip.all::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+
+      .chip.on::before {
+        background: var(--on-bg);
+        border: 1px solid rgba(158, 47, 47, 0.25);
+      }
+
+      .chip.off::before {
+        background: var(--off-bg);
+        border: 1px solid rgba(31, 106, 61, 0.25);
+      }
+
+      .chip.all::before {
+        background: var(--alloff-bg);
+        border: 1px solid rgba(20, 90, 45, 0.35);
+      }
+
+      .table-wrap {
+        background: var(--card);
+        border-radius: 24px;
+        padding: 16px;
+        border: 1px solid var(--card-border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
+      }
+
+      .range {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        color: var(--ink-2);
+      }
+
+      .range strong {
+        color: var(--ink-1);
+      }
+
+      .table-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 8px;
+      }
+
+      table {
+        border-collapse: separate;
+        border-spacing: 6px;
+        min-width: 720px;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        text-align: center;
+        padding: 10px 8px;
+        border-radius: 14px;
+        background: #ffffff;
+        border: 1px solid rgba(26, 31, 43, 0.08);
+        min-width: 70px;
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+
+      thead th {
+        position: sticky;
+        top: 0;
+        background: #ffffff;
+        z-index: 3;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .sticky-col {
+        position: sticky;
+        left: 0;
+        z-index: 4;
+        background: #ffffff;
+        text-align: left;
+        padding-left: 16px;
+        font-weight: 700;
+        color: var(--ink-1);
+        min-width: 140px;
+      }
+
+      thead .sticky-col {
+        z-index: 6;
+      }
+
+      .date {
+        font-weight: 700;
+        color: var(--ink-1);
+        font-size: 0.8rem;
+      }
+
+      .dow {
+        font-size: 0.68rem;
+        color: var(--ink-2);
+        margin-top: 4px;
+      }
+
+      .month-start {
+        border-left: 3px solid var(--accent);
+      }
+
+      .cell.on {
+        background: var(--on-bg);
+        color: var(--on-ink);
+      }
+
+      .cell.off {
+        background: var(--off-bg);
+        color: var(--off-ink);
+      }
+
+      .cell.all-off {
+        background: var(--alloff-bg);
+        color: var(--alloff-ink);
+        font-weight: 700;
+      }
+
+      .alloff-label {
+        background: rgba(67, 176, 198, 0.1);
+        color: var(--ink-1);
+      }
+
+      .note {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        color: var(--ink-2);
+      }
+
+      .note strong {
+        color: var(--ink-1);
+      }
+
+      .table-scroll::-webkit-scrollbar {
+        height: 12px;
+      }
+
+      .table-scroll::-webkit-scrollbar-track {
+        background: rgba(26, 31, 43, 0.08);
+        border-radius: 999px;
+      }
+
+      .table-scroll::-webkit-scrollbar-thumb {
+        background: linear-gradient(120deg, var(--accent), var(--accent-2));
+        border-radius: 999px;
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          padding: 24px 16px 36px;
         }
-        #roster {
-            overflow-x: auto;
-            max-width: 100%;
+
+        .hero {
+          align-items: flex-start;
         }
-        table {
-            border-collapse: collapse;
-            width: auto;
+
+        .table-wrap {
+          padding: 12px;
+          border-radius: 18px;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-            min-width: 80px;
+
+        th,
+        td {
+          min-width: 58px;
+          padding: 8px 6px;
+          font-size: 0.8rem;
         }
-        th {
-            background-color: #f2f2f2;
+
+        .sticky-col {
+          min-width: 110px;
+          padding-left: 12px;
         }
-        .on {
-            background-color: #ffcccc; /* Light red for on work */
+
+        .date {
+          font-size: 0.74rem;
         }
-        .off {
-            background-color: #ccffcc; /* Light green for off */
+
+        .dow {
+          font-size: 0.62rem;
         }
-        .all-off {
-            font-weight: bold;
-            color: #006600; /* Dark green for all off days */
-        }
-        .name {
-            position: sticky;
-            left: 0;
-            background-color: #f2f2f2;
-            z-index: 1;
-        }
+      }
     </style>
-</head>
-<body>
-    <h1>Family Work Roster</h1>
-    <p>This table shows the rosters from today onwards for one year. Scroll horizontally to see future dates. Days where everyone is off are highlighted in the "All Off" row.</p>
-    <div id="roster"></div>
+  </head>
+  <body>
+    <div class="page">
+      <header class="hero">
+        <div>
+          <h1>Family Work Roster</h1>
+          <p>Scroll sideways to explore the next 365 days of work and rest.</p>
+        </div>
+        <div class="legend">
+          <span class="chip on">On</span>
+          <span class="chip off">Off</span>
+          <span class="chip all">All Off</span>
+        </div>
+      </header>
+
+      <section class="table-wrap">
+        <div class="range">
+          <div>Starting <strong id="todayLabel">today</strong></div>
+          <div>Next 365 days</div>
+        </div>
+        <div class="table-scroll">
+          <table id="rosterTable" aria-label="Family work roster"></table>
+        </div>
+        <div class="note">
+          Light red cells are <strong>on</strong> and light green cells are <strong>off</strong>.
+          The All Off row marks days when everyone is home.
+        </div>
+      </section>
+    </div>
 
     <script>
-        // Define the people and their roster configurations
-        const people = [
-            {
-                name: 'Megan',
-                cycle: 28, // 14 on, 14 off
-                onDays: 14,
-                anchor: new Date(2025, 7, 27), // Aug 27, 2025 - start of on
-                isOnAnchor: true // Anchor is start of on
-            },
-            {
-                name: 'Zac',
-                cycle: 21, // 14 on, 7 off
-                onDays: 14,
-                anchor: new Date(2026, 1, 10), // Feb 10, 2026 - start of off
-                isOnAnchor: false // Anchor is start of off
-            },
-            {
-                name: 'Bon',
-                cycle: 14, // 8 on, 6 off
-                onDays: 8,
-                anchor: new Date(2026, 1, 11), // Feb 11, 2026 - start of off
-                isOnAnchor: false
-            },
-            {
-                name: 'Kirsty',
-                cycle: 14, // 8 on, 6 off
-                onDays: 8,
-                anchor: new Date(2026, 1, 10), // Feb 10, 2026 - start of off
-                isOnAnchor: false
-            },
-            {
-                name: 'Dad',
-                cycle: 21, // 14 on, 7 off
-                onDays: 14,
-                anchor: new Date(2026, 1, 6), // Feb 6, 2026 - start of on
-                isOnAnchor: true
-            }
-        ];
+      const roster = [
+        {
+          name: "Megan",
+          on: 14,
+          off: 14,
+          anchor: "2025-08-27",
+          anchorIsOn: true,
+        },
+        {
+          name: "Zac",
+          on: 14,
+          off: 7,
+          anchor: "2026-02-10",
+          anchorIsOn: false,
+        },
+        {
+          name: "Bon",
+          on: 8,
+          off: 6,
+          anchor: "2026-02-11",
+          anchorIsOn: false,
+        },
+        {
+          name: "Kirsty",
+          on: 8,
+          off: 6,
+          anchor: "2026-02-10",
+          anchorIsOn: false,
+        },
+        {
+          name: "Dad",
+          on: 14,
+          off: 7,
+          anchor: "2026-02-06",
+          anchorIsOn: true,
+        },
+      ];
 
-        // Function to determine if a person is on or off on a given day
-        function isOn(person, day) {
-            const msPerDay = 86400000;
-            const daysSince = Math.floor((day - person.anchor) / msPerDay);
-            let pos = daysSince % person.cycle;
-            if (pos < 0) pos += person.cycle; // Handle past dates if any
+      const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-            if (person.isOnAnchor) {
-                // Anchor is start of on: 0 to onDays-1 = on
-                return pos < person.onDays;
-            } else {
-                // Anchor is start of off: 0 to (cycle - onDays -1) = off, else on
-                const offDays = person.cycle - person.onDays;
-                return pos >= offDays;
-            }
+      const toLocalDate = (dateString) => {
+        const parts = dateString.split("-").map(Number);
+        return new Date(parts[0], parts[1] - 1, parts[2]);
+      };
+
+      const dayNumber = (date) =>
+        Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / MS_PER_DAY);
+
+      const daysBetween = (anchorDate, targetDate) =>
+        dayNumber(targetDate) - dayNumber(anchorDate);
+
+      const isOn = (person, date) => {
+        const cycle = person.on + person.off;
+        const offset = daysBetween(toLocalDate(person.anchor), date);
+        const dayInCycle = ((offset % cycle) + cycle) % cycle;
+        if (person.anchorIsOn) {
+          return dayInCycle < person.on;
         }
+        return dayInCycle >= person.off;
+      };
 
-        // Generate dates from today to +365 days
-        const today = new Date();
-        today.setHours(0, 0, 0, 0); // Normalize to start of day
-        const days = 365;
+      const startOfToday = () => {
+        const now = new Date();
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      };
+
+      const formatDate = (date) =>
+        new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(date);
+
+      const formatWeekday = (date) =>
+        new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(date);
+
+      const buildTable = () => {
+        const table = document.getElementById("rosterTable");
+        const todayLabel = document.getElementById("todayLabel");
+        const startDate = startOfToday();
+        todayLabel.textContent = new Intl.DateTimeFormat("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        }).format(startDate);
+
+        const thead = document.createElement("thead");
+        const headRow = document.createElement("tr");
+
+        const nameHeader = document.createElement("th");
+        nameHeader.className = "sticky-col";
+        nameHeader.textContent = "Name";
+        headRow.appendChild(nameHeader);
+
         const dates = [];
-        for (let i = 0; i <= days; i++) {
-            const date = new Date(today);
-            date.setDate(today.getDate() + i);
-            dates.push(date);
+        for (let i = 0; i < 365; i += 1) {
+          const date = new Date(startDate);
+          date.setDate(startDate.getDate() + i);
+          dates.push(date);
+
+          const th = document.createElement("th");
+          if (date.getDate() === 1 || i === 0) {
+            th.classList.add("month-start");
+          }
+          th.innerHTML = `<div class="date">${formatDate(date)}</div><div class="dow">${formatWeekday(date)}</div>`;
+          headRow.appendChild(th);
         }
 
-        // Create table
-        const table = document.createElement('table');
-        const headerRow = document.createElement('tr');
-        const emptyTh = document.createElement('th');
-        headerRow.appendChild(emptyTh);
-        dates.forEach(date => {
-            const th = document.createElement('th');
-            const options = { weekday: 'short', day: 'numeric', month: 'short' };
-            th.textContent = date.toLocaleDateString('en-US', options);
-            headerRow.appendChild(th);
-        });
-        table.appendChild(headerRow);
+        thead.appendChild(headRow);
 
-        // Add rows for each person
-        people.forEach(person => {
-            const row = document.createElement('tr');
-            const nameTd = document.createElement('td');
-            nameTd.textContent = person.name;
-            nameTd.classList.add('name');
-            row.appendChild(nameTd);
-            dates.forEach(date => {
-                const td = document.createElement('td');
-                const onWork = isOn(person, date);
-                td.textContent = onWork ? 'on' : 'off';
-                td.classList.add(onWork ? 'on' : 'off');
-                row.appendChild(td);
-            });
-            table.appendChild(row);
+        const tbody = document.createElement("tbody");
+
+        roster.forEach((person) => {
+          const row = document.createElement("tr");
+          const nameCell = document.createElement("th");
+          nameCell.className = "sticky-col";
+          nameCell.textContent = person.name;
+          row.appendChild(nameCell);
+
+          dates.forEach((date) => {
+            const cell = document.createElement("td");
+            const on = isOn(person, date);
+            cell.className = `cell ${on ? "on" : "off"}`;
+            cell.textContent = on ? "on" : "off";
+            row.appendChild(cell);
+          });
+
+          tbody.appendChild(row);
         });
 
-        // Add "All Off" row
-        const allOffRow = document.createElement('tr');
-        const allOffName = document.createElement('td');
-        allOffName.textContent = 'All Off';
-        allOffName.classList.add('name');
-        allOffRow.appendChild(allOffName);
-        dates.forEach(date => {
-            const td = document.createElement('td');
-            const allOff = people.every(person => !isOn(person, date));
-            td.textContent = allOff ? 'Yes' : '';
-            if (allOff) td.classList.add('all-off');
-            allOffRow.appendChild(td);
-        });
-        table.appendChild(allOffRow);
+        const allOffRow = document.createElement("tr");
+        const allOffLabel = document.createElement("th");
+        allOffLabel.className = "sticky-col alloff-label";
+        allOffLabel.textContent = "All Off";
+        allOffRow.appendChild(allOffLabel);
 
-        document.getElementById('roster').appendChild(table);
+        dates.forEach((date) => {
+          const cell = document.createElement("td");
+          const allOff = roster.every((person) => !isOn(person, date));
+          if (allOff) {
+            cell.className = "cell all-off";
+            cell.textContent = "Yes";
+          } else {
+            cell.className = "cell";
+            cell.textContent = "";
+          }
+          allOffRow.appendChild(cell);
+        });
+
+        tbody.appendChild(allOffRow);
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+      };
+
+      document.addEventListener("DOMContentLoaded", buildTable);
     </script>
-</body>
+  </body>
 </html>
