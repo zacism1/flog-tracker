@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Roster Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #roster {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        table {
+            border-collapse: collapse;
+            width: auto;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            min-width: 80px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .on {
+            background-color: #ffcccc; /* Light red for on work */
+        }
+        .off {
+            background-color: #ccffcc; /* Light green for off */
+        }
+        .all-off {
+            font-weight: bold;
+            color: #006600; /* Dark green for all off days */
+        }
+        .name {
+            position: sticky;
+            left: 0;
+            background-color: #f2f2f2;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <h1>Family Work Roster</h1>
+    <p>This table shows the rosters from today onwards for one year. Scroll horizontally to see future dates. Days where everyone is off are highlighted in the "All Off" row.</p>
+    <div id="roster"></div>
+
+    <script>
+        // Define the people and their roster configurations
+        const people = [
+            {
+                name: 'Megan',
+                cycle: 28, // 14 on, 14 off
+                onDays: 14,
+                anchor: new Date(2025, 7, 27), // Aug 27, 2025 - start of on
+                isOnAnchor: true // Anchor is start of on
+            },
+            {
+                name: 'Zac',
+                cycle: 21, // 14 on, 7 off
+                onDays: 14,
+                anchor: new Date(2026, 1, 10), // Feb 10, 2026 - start of off
+                isOnAnchor: false // Anchor is start of off
+            },
+            {
+                name: 'Bon',
+                cycle: 14, // 8 on, 6 off
+                onDays: 8,
+                anchor: new Date(2026, 1, 11), // Feb 11, 2026 - start of off
+                isOnAnchor: false
+            },
+            {
+                name: 'Kirsty',
+                cycle: 14, // 8 on, 6 off
+                onDays: 8,
+                anchor: new Date(2026, 1, 10), // Feb 10, 2026 - start of off
+                isOnAnchor: false
+            },
+            {
+                name: 'Dad',
+                cycle: 21, // 14 on, 7 off
+                onDays: 14,
+                anchor: new Date(2026, 1, 6), // Feb 6, 2026 - start of on
+                isOnAnchor: true
+            }
+        ];
+
+        // Function to determine if a person is on or off on a given day
+        function isOn(person, day) {
+            const msPerDay = 86400000;
+            const daysSince = Math.floor((day - person.anchor) / msPerDay);
+            let pos = daysSince % person.cycle;
+            if (pos < 0) pos += person.cycle; // Handle past dates if any
+
+            if (person.isOnAnchor) {
+                // Anchor is start of on: 0 to onDays-1 = on
+                return pos < person.onDays;
+            } else {
+                // Anchor is start of off: 0 to (cycle - onDays -1) = off, else on
+                const offDays = person.cycle - person.onDays;
+                return pos >= offDays;
+            }
+        }
+
+        // Generate dates from today to +365 days
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Normalize to start of day
+        const days = 365;
+        const dates = [];
+        for (let i = 0; i <= days; i++) {
+            const date = new Date(today);
+            date.setDate(today.getDate() + i);
+            dates.push(date);
+        }
+
+        // Create table
+        const table = document.createElement('table');
+        const headerRow = document.createElement('tr');
+        const emptyTh = document.createElement('th');
+        headerRow.appendChild(emptyTh);
+        dates.forEach(date => {
+            const th = document.createElement('th');
+            const options = { weekday: 'short', day: 'numeric', month: 'short' };
+            th.textContent = date.toLocaleDateString('en-US', options);
+            headerRow.appendChild(th);
+        });
+        table.appendChild(headerRow);
+
+        // Add rows for each person
+        people.forEach(person => {
+            const row = document.createElement('tr');
+            const nameTd = document.createElement('td');
+            nameTd.textContent = person.name;
+            nameTd.classList.add('name');
+            row.appendChild(nameTd);
+            dates.forEach(date => {
+                const td = document.createElement('td');
+                const onWork = isOn(person, date);
+                td.textContent = onWork ? 'on' : 'off';
+                td.classList.add(onWork ? 'on' : 'off');
+                row.appendChild(td);
+            });
+            table.appendChild(row);
+        });
+
+        // Add "All Off" row
+        const allOffRow = document.createElement('tr');
+        const allOffName = document.createElement('td');
+        allOffName.textContent = 'All Off';
+        allOffName.classList.add('name');
+        allOffRow.appendChild(allOffName);
+        dates.forEach(date => {
+            const td = document.createElement('td');
+            const allOff = people.every(person => !isOn(person, date));
+            td.textContent = allOff ? 'Yes' : '';
+            if (allOff) td.classList.add('all-off');
+            allOffRow.appendChild(td);
+        });
+        table.appendChild(allOffRow);
+
+        document.getElementById('roster').appendChild(table);
+    </script>
+</body>
+</html>
